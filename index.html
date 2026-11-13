@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b1020"><link rel="manifest" href="manifest.webmanifest"><title>Swing Hunter AI</title>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#080d19;color:#eef3ff;font:15px system-ui,-apple-system,sans-serif}
+header{padding:24px 18px;background:linear-gradient(130deg,#111d38,#182c4c);border-bottom:1px solid #2d4165}
+h1{margin:0;font-size:25px}header p{color:#b7c7e6;margin:6px 0 0}.wrap{max-width:900px;margin:auto;padding:16px}
+.status{padding:13px;border:1px solid #263854;border-radius:13px;background:#101a2c;margin:10px 0 18px;color:#bdcbea}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(245px,1fr));gap:12px}.card{background:#111a2b;border:1px solid #263854;border-radius:15px;padding:15px}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:center}.symbol{font-size:20px;font-weight:750}.signal{font-weight:800;padding:5px 10px;border-radius:20px;background:#203d35;color:#8df0b7}.PE{background:#442b31;color:#ffadb6}.WAIT{background:#3a3524;color:#f8dc89}
+.score{font-size:28px;font-weight:800;margin:12px 0}.muted{color:#9aabc8;font-size:13px}.metrics{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:12px}.metric{background:#0b1322;padding:9px;border-radius:9px}.metric b{display:block;margin-top:3px}
+button{background:#7ca8ff;color:#081225;border:0;border-radius:10px;padding:11px 15px;font-weight:750}footer{color:#899ab8;font-size:12px;line-height:1.5;padding:22px 4px}
+</style></head><body>
+<header><div class="wrap"><h1>⚡ Swing Hunter AI</h1><p>Automatic NSE F&O swing watchlist · Daily timeframe</p></div></header>
+<main class="wrap"><div class="status" id="status">Loading latest scan…</div><div class="row"><h2>Top 5 setups</h2><button onclick="loadReport()">Refresh</button></div><section class="cards" id="cards"></section>
+<footer>Educational scanner only — not investment advice. Signals are based on underlying stock EOD data, not option-chain data. CE/PE means directional watch only; it does not select an option strike or calculate option-premium stop-loss. Free Yahoo Finance data is unofficial and may be delayed, incomplete or unavailable. Verify every setup before trading. No profit is guaranteed.</footer></main>
+<script>
+async function loadReport(){const s=document.getElementById('status'),c=document.getElementById('cards');s.textContent='Checking latest report…';try{const r=await fetch('./data/latest.json?ts='+Date.now());if(!r.ok)throw Error('No report published yet');const d=await r.json();s.textContent=`Last updated: ${d.generated_at||'Not available'} · Data through: ${d.data_through||'—'} · Universe: ${d.universe_count||0} stocks`;c.innerHTML='';(d.top5||[]).forEach(x=>{const sig=x.signal||'WAIT';const el=document.createElement('article');el.className='card';el.innerHTML=`<div class="row"><div class="symbol">${x.symbol}</div><span class="signal ${sig}">${sig}</span></div><div class="score">${x.score}/100 <span class="muted">score</span></div><div class="metrics"><div class="metric">Reference close<b>₹${x.close}</b></div><div class="metric">RSI (14)<b>${x.rsi}</b></div><div class="metric">Stop reference<b>₹${x.stop}</b></div><div class="metric">Target 1 / 2<b>₹${x.t1} / ₹${x.t2}</b></div><div class="metric">EMA 20 / 50<b>${x.ema20} / ${x.ema50}</b></div><div class="metric">Volume ratio<b>${x.volume_ratio}×</b></div></div><p class="muted">${(x.reasons||[]).join(' · ')}</p>`;c.appendChild(el)});if(!(d.top5||[]).length)c.innerHTML='<p>No qualifying setups today. WAIT is a valid result.</p>'}catch(e){s.textContent='Report not available yet. Run the setup workflow and refresh.';c.innerHTML='<div class="card">No report found. Follow README setup steps.</div>'}}
+loadReport();if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js');
+</script></body></html>
